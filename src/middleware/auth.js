@@ -47,10 +47,8 @@ const verificarToken = async (req, res, next) => {
       });
     }
     
-    return res.status(500).json({
-      success: false,
-      message: 'Error al verificar autenticación'
-    });
+    // Enviar al errorHandler global para otros errores
+    next(error);
   }
 };
 
@@ -58,6 +56,8 @@ const verificarToken = async (req, res, next) => {
 const verificarRol = (...rolesPermitidos) => {
   return (req, res, next) => {
     if (!req.usuario) {
+      // Este caso debería ser manejado por verificarToken primero,
+      // pero es una salvaguarda. El errorHandler debería dar un 500 si esto ocurre.
       return res.status(401).json({
         success: false,
         message: 'No autenticado'
@@ -84,6 +84,9 @@ const esAdminOFacturador = verificarRol('admin', 'facturador');
 // Verificar si es admin o bodeguero
 const esAdminOBodeguero = verificarRol('admin', 'bodeguero');
 
+// Verificar si es admin, bodeguero o facturador
+const esAdminBodegueroOFacturador = verificarRol('admin', 'bodeguero', 'facturador');
+
 // Middleware opcional - si hay token lo verifica, si no, continúa
 const autenticacionOpcional = async (req, res, next) => {
   try {
@@ -101,7 +104,8 @@ const autenticacionOpcional = async (req, res, next) => {
     
     next();
   } catch (error) {
-    // Si hay error con el token, simplemente continuar sin usuario
+    // Si hay error con el token (inválido, expirado), simplemente continuar sin usuario.
+    // No se debe enviar un error al cliente por un token opcional que resulta ser inválido.
     next();
   }
 };
@@ -112,5 +116,6 @@ module.exports = {
   esAdmin,
   esAdminOFacturador,
   esAdminOBodeguero,
+  esAdminBodegueroOFacturador, // Asegúrate de que esta línea esté
   autenticacionOpcional
 };
