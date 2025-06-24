@@ -143,7 +143,7 @@ const crearSalida = async (req, res, next) => {
       observaciones,
       estado: 'pendiente',
       fecha: new Date(),
-      usuario_id: req.user?.id || null
+      usuario_id: req.usuario.id
     };
 
     const nuevaSalida = await Salida.crear(datosSalida, detalles);
@@ -280,17 +280,13 @@ const cancelarSalida = async (req, res, next) => {
       });
     }
 
-    const salidaCancelada = await Salida.cancelar(id, motivo_cancelacion);
+    const salidaAnular = await Salida.cancelar(id, motivo_cancelacion);
 
     res.json({
       success: true,
-      message: 'Salida cancelada exitosamente',
-      data: salidaCancelada
+      message: 'Salida anulada exitosamente'
+      // Nota: Ya no se devuelve 'data: salidaCancelada' porque Salida.anular devuelve true/false o lanza error.
     });
-  } catch (error) {
-    next(error);
-  }
-};
 
 // Eliminar salida
 const eliminarSalida = async (req, res, next) => {
